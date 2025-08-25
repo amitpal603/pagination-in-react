@@ -36,7 +36,7 @@ const [search,setSearch] = useState("")
     return (
       data.category.toLowerCase().includes(searchTerm) ||
       data.brand.toLowerCase().includes(searchTerm) ||
-       data.title.toLowerCase().includes(searchTerm) 
+      data.title.toLowerCase().includes(searchTerm) 
     )
   })
 
