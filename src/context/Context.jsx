@@ -4,47 +4,57 @@ export const Pagination = createContext();
 
 function Context({ children }) {
   const [page, setPage] = useState(1);
-  const [data, setData] = useState([]);
-  const [total, setTotal] = useState(0);
+  const [allData, setAllData] = useState([]); // store all products
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const limit = 12; // items per page
 
+  // fetch all products once
   const fetchData = async () => {
     try {
-      setLoading(true); // start loading
-      const res = await fetch(
-        `https://dummyjson.com/products?limit=12&skip=${page * 12 - 12}`
-      );
+      setLoading(true);
+      const res = await fetch(`https://dummyjson.com/products?limit=100`); 
       const result = await res.json();
       if (result && result.products) {
-        setData(result.products);
-        setTotal(Math.ceil(result.total / 20));
+        setAllData(result.products);
       }
-      setLoading(false)
+      setLoading(false);
     } catch (error) {
       console.log("Internal server Error", error);
-    } 
-    
+    }
   };
-
-  // search section
-const [search,setSearch] = useState("")
-  const filterData = data.filter((data) => {
-    const searchTerm = search.toLowerCase()
-
-    if(searchTerm === "") return true
-
-    return (
-      data.category.toLowerCase().includes(searchTerm) ||
-      data.brand.toLowerCase().includes(searchTerm) ||
-      data.title.toLowerCase().includes(searchTerm) 
-    )
-  })
 
   useEffect(() => {
     fetchData();
-  }, [page]);
+  }, []);
 
-  const Value = { data, page, setPage, total, loading,setSearch,filterData};
+  // search filter
+  const filteredData = allData.filter((item) => {
+    const searchTerm = search.toLowerCase();
+    if (searchTerm === "") return true;
+    return (
+      item.category.toLowerCase().includes(searchTerm) ||
+      item.brand.toLowerCase().includes(searchTerm) ||
+      item.title.toLowerCase().includes(searchTerm)
+    );
+  });
+
+  // pagination applied after search
+  const start = (page - 1) * limit;
+  const paginatedData = filteredData.slice(start, start + limit);
+
+  // total pages depends on search results
+  const total = Math.ceil(filteredData.length / limit);
+
+  const Value = {
+    data: paginatedData,
+    page,
+    setPage,
+    total,
+    loading,
+    setSearch,
+    search,
+  };
 
   return (
     <Pagination.Provider value={Value}>{children}</Pagination.Provider>
